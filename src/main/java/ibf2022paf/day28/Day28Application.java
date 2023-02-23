@@ -14,7 +14,7 @@ import ibf2022paf.day28.repositories.AppsRepository;
 public class Day28Application implements CommandLineRunner{
 
 	@Autowired
-	private AppsRepository playstoreRepository;
+	private AppsRepository appsRepo;
 	public static void main(String[] args) {
 		SpringApplication.run(Day28Application.class, args);
 	}
@@ -22,7 +22,7 @@ public class Day28Application implements CommandLineRunner{
 	@Override
 	public void run(String... args){
 
-		List<Document> results = playstoreRepository.groupAppByCategory();
+		List<Document> results = appsRepo.getAppByCategory();
 
 		for (Document d: results)
 			System.out.printf(">>> %s\n", d.toJson());

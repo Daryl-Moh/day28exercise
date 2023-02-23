@@ -6,12 +6,14 @@ import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.mongodb.MongoExpression;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationExpression;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.aggregation.GroupOperation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
-import org.springframework.data.mongodb.core.aggregation.SortOperation;
+
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Repository;
 
@@ -23,26 +25,36 @@ public class AppsRepository {
     @Autowired
     private MongoTemplate template;
 
-    public List<Document> groupAppByCategory(){
-
+    public List<Document> getAppByCategory(){
+        //Criteria criteria = Criteria.where(FIELD_RATING).is(Float.NaN);
         Criteria criteria = Criteria.where(FIELD_RATING).ne(Float.NaN);
-        MatchOperation matchNonNaN = Aggregration.match(criteria);
+        MatchOperation matchNonNaN = Aggregation.match(criteria);
         GroupOperation groupByCategory = Aggregation.group(FIELD_CATEGORY)
             .push(FIELD_APP).as(FIELD_APPS)
-            .and()
+            //.avg(FIELD_RATING).as(FIELD_AVG_RATING);
+            .and(FIELD_RATING,
+                    AggregationExpression.from(
+                        MongoExpression.create("""
+                                $avg: "$Rating"
+                                """)
+                    )
+            );  
 
+        // SortOperation sortByCount = Aggregation.sort(
+        //     Sort.by(Direction.ASC,FIELD_COUNT));
+
+        // Aggregation pipeline = Aggregation.newAggregation(
+        //     groupByCategory, sortByCount);
+
+        // AggregationResults<Document> results = template.aggregate(
+        //     pipeline, PLAYSTORE, Document.class);
+
+        //return results.getMappedResults();
+
+        Aggregation pipeline = Aggregation.newAggregation(matchNonNaN, groupByCategory);
+        //Aggregation pipeline = Aggregation.newAggregation(matchNonNaN);
             
-            .count().as(FIELD_COUNT);
-
-        SortOperation sortByCount = Aggregation.sort(
-            Sort.by(Direction.ASC,FIELD_COUNT));
-
-        Aggregation pipeline = Aggregation.newAggregation(
-            groupByCategory, sortByCount);
-
-        AggregationResults<Document> results = template.aggregate(
-            pipeline, PLAYSTORE, Document.class);
-            
-        return results.getMappedResults();
+        return template.aggregate(pipeline, COLLECTION_APPLICATIONS, Document.class)
+            .getMappedResults();
     }
 }
