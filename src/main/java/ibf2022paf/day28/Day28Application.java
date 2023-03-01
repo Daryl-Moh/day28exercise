@@ -22,6 +22,7 @@ public class Day28Application implements CommandLineRunner{
 	@Override
 	public void run(String... args){
 
+		// Calls the repo to get a List of Documents from the DB
 		List<Document> results = appsRepo.getAppByCategory();
 
 		for (Document d: results)

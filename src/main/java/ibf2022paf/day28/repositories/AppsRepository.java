@@ -25,6 +25,7 @@ public class AppsRepository {
     @Autowired
     private MongoTemplate template;
 
+    // Create the DB operations in Mongo and convert them to Java
     public List<Document> getAppByCategory(){
         //Criteria criteria = Criteria.where(FIELD_RATING).is(Float.NaN);
         Criteria criteria = Criteria.where(FIELD_RATING).ne(Float.NaN);
@@ -54,6 +55,7 @@ public class AppsRepository {
         Aggregation pipeline = Aggregation.newAggregation(matchNonNaN, groupByCategory);
         //Aggregation pipeline = Aggregation.newAggregation(matchNonNaN);
             
+        // Returns a List of Documents
         return template.aggregate(pipeline, COLLECTION_APPLICATIONS, Document.class)
             .getMappedResults();
     }
